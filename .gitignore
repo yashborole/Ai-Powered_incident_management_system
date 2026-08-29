@@ -1,0 +1,29 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# Environment variables
+.env
+.env.local
+
+# IDE settings
+.vscode/
+.idea/
+
+# Node / Frontend & Build output
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+build/
+**/build/
+.npm
+*.log
+

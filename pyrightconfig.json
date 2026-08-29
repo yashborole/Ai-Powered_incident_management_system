@@ -1,5 +1,33 @@
 {
-  "extraPaths": ["smart_manufacturing"],
+  "executionEnvironments": [
+    {
+      "root": "Ai-powered_incident",
+      "extraPaths": [".", "Ai-powered_incident"]
+    },
+    {
+      "root": "smart_manufacturing",
+      "extraPaths": [".", "smart_manufacturing"]
+    },
+    {
+      "root": "E-commerce-analytics",
+      "extraPaths": [".", "E-commerce-analytics"]
+    },
+    {
+      "root": "Fastapi-Project",
+      "extraPaths": [".", "Fastapi-Project"]
+    },
+    {
+      "root": "home-assignment-chatbot/lenny-growth-assistant/backend",
+      "extraPaths": [".", "home-assignment-chatbot/lenny-growth-assistant/backend"]
+    }
+  ],
+  "extraPaths": [
+    "./Ai-powered_incident",
+    "./smart_manufacturing",
+    "./E-commerce-analytics",
+    "./Fastapi-Project",
+    "./home-assignment-chatbot/lenny-growth-assistant/backend"
+  ],
   "venvPath": ".",
   "venv": "venv"
 }
