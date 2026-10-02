@@ -99,4 +99,4 @@ def delete_application(
     db.delete(db_application)
     db.commit()
 
-    return db_application
+    return db_application 
