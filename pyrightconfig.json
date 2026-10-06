@@ -1,5 +1,0 @@
-{
-  "extraPaths": ["smart_manufacturing"],
-  "venvPath": ".",
-  "venv": "venv"
-}

@@ -1,0 +1,30 @@
+# Dependencies & virtual environments
+**/node_modules/
+**/venv/
+**/.venv/
+**/dist/
+**/build/
+
+# Python cache
+**/__pycache__/
+*.py[cod]
+
+# System / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# Env files
+.env
+.env.*
+
+# Other local standalone projects (kept on disk, untracked on this branch)
+E-commerce-analytics/
+saptasurr/
+Ai-powered_incident/
+Cloth-NN Project/
+Fastapi-Project/
+README.md
+pyrightconfig.json
