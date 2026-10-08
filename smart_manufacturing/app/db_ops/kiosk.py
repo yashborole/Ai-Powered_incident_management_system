@@ -74,16 +74,19 @@ def run_job(job_id: int):
         if machine["status"] == "Running":
             return {"error": "Machine is already running a job. Complete or cancel the current job first."}
 
+        # Update job status to Running
         db.execute(text("""
             UPDATE jobs SET status = 'Running', started_at = NOW()
             WHERE id = :job_id
         """), {"job_id": job_id})
 
+        # Update machine status to Running
         db.execute(text("""
             UPDATE machines SET status = 'Running', current_job_id = :job_id
             WHERE id = :machine_id
         """), {"job_id": job_id, "machine_id": machine_id})
 
+        # Insert machine log entry
         db.execute(text("""
             INSERT INTO machine_logs (machine_id, job_id, status, units_produced, note, timestamp)
             VALUES (:machine_id, :job_id, 'Running', 0, :note, NOW())
@@ -93,6 +96,7 @@ def run_job(job_id: int):
             "note": f"Job '{job['title']}' started"
         })
 
+        # Insert activity log
         db.execute(text("""
             INSERT INTO activity_logs (event, status, plant_id, timestamp)
             VALUES (:event, 'Running', :plant_id, NOW())
@@ -126,17 +130,20 @@ def complete_job(job_id: int, units_produced: int):
         if not machine:
             return {"error": "Machine not found"}
 
+        # Complete the job
         db.execute(text("""
             UPDATE jobs 
             SET status = 'Completed', units_produced = :units, completed_at = NOW()
             WHERE id = :job_id
         """), {"units": units_produced, "job_id": job_id})
 
+        # Machine goes Idle
         db.execute(text("""
             UPDATE machines SET status = 'Idle', current_job_id = NULL
             WHERE id = :machine_id
         """), {"machine_id": machine_id})
 
+        # Machine log for completion
         db.execute(text("""
             INSERT INTO machine_logs (machine_id, job_id, status, units_produced, note, timestamp)
             VALUES (:machine_id, :job_id, 'Idle', :units, :note, NOW())
@@ -147,6 +154,7 @@ def complete_job(job_id: int, units_produced: int):
             "note": f"Job '{job['title']}' completed. {units_produced}/{job['target_qty']} units produced."
         })
 
+        # Auto-create production record
         target = job["target_qty"]
         rejected = max(0, target - units_produced) if units_produced < target else 0
         oee = round((units_produced / target * 100), 1) if target > 0 else 0.0
@@ -163,6 +171,7 @@ def complete_job(job_id: int, units_produced: int):
             "machine_id": machine_id
         })
 
+        # Activity log
         db.execute(text("""
             INSERT INTO activity_logs (event, status, plant_id, timestamp)
             VALUES (:event, 'Completed', :plant_id, NOW())
@@ -173,6 +182,43 @@ def complete_job(job_id: int, units_produced: int):
 
         db.commit()
         return {"success": True, "message": f"Job completed. {units_produced} units recorded.", "oee": oee}
+    except Exception as e:
+        db.rollback()
+        return {"error": str(e)}
+    finally:
+        db.close()
+
+
+def produce_units(job_id: int, count: int = 1):
+    db = SessionLocal()
+    try:
+        job = db.execute(text("SELECT * FROM jobs WHERE id = :job_id"), {"job_id": job_id}).mappings().first()
+        if not job:
+            return {"error": "Job not found"}
+
+        if job["status"] != "Running":
+            return {"error": f"Cannot produce units for job with status '{job['status']}'. Job must be Running."}
+
+        target = job["target_qty"]
+        current = job["units_produced"]
+        new_units = current + max(1, count)
+
+        db.execute(text("""
+            UPDATE jobs 
+            SET units_produced = :new_units 
+            WHERE id = :job_id
+        """), {"new_units": new_units, "job_id": job_id})
+
+        db.commit()
+        progress = round((new_units / target * 100), 1) if target > 0 else 0.0
+        return {
+            "success": True,
+            "job_id": job_id,
+            "units_produced": new_units,
+            "target_qty": target,
+            "progress_percent": progress,
+            "target_reached": new_units >= target
+        }
     except Exception as e:
         db.rollback()
         return {"error": str(e)}
